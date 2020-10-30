@@ -144,6 +144,18 @@
 
   ```shell
   # 每次提交，Git都把它们串成一条时间线，这条时间线就是一个分支。截止到目前，只有一条时间线，在Git里，这个分支叫主分支，即master分支。HEAD严格来说不是指向提交，而是指向master，master才是指向提交的，所以，HEAD指向的就是当前分支。
+  
+  # 当我们创建新的分支，例如dev时，Git新建了一个指针叫dev，指向master相同的提交，再把HEAD指向dev，就表示当前分支在dev上
+  
+  
+  # 实际操作：
+  	1.# 首先，创建dev分支，然后切换到dev分支：
+  	$ git checkout -b dev
+  	Switched to a new branch 'dev'
+  	# 注意：该命令加上-b后，一条语句相当于执行了以下两条语句
+  		$ git branch dev
+  		$ git checkout dev
+  	2.# 之后，可用git branch命令查看所有分支，当前分支前会有*号
   ```
 
 
