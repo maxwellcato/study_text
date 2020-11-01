@@ -44,7 +44,7 @@
   # 在Git中，用HEAD表示当前版本，上一个版本就是HEAD^，上上一个版本就是HEAD^^，当然往上100个版本写100个^比较容易数不过来，所以写成HEAD~100。
   $ git reset --hard HEAD^  #将git回退一个版本
   $ git reset --hard 2e9ccd  #将git回退或前进到某一个版本
-  $ git reflog  #该命令可查看每一次的版本更改命令：
+  $ git reflog  #该命令可查看每一次的版本更改命令:
   	$ git reflog
       2e9ccdc (HEAD -> master) HEAD@{0}: reset: moving to 2e9ccd
       3b9c27f HEAD@{1}: reset: moving to HEAD~1
@@ -155,8 +155,164 @@
   	# 注意：该命令加上-b后，一条语句相当于执行了以下两条语句
   		$ git branch dev
   		$ git checkout dev
-  	2.# 之后，可用git branch命令查看所有分支，当前分支前会有*号
+  	2.# 之后，可用git branch命令查看所有分支，当前分支*(此时应该是dev分支)前会有*号，此时修改文件内容并提交的话，将被提交到dev分支上。
+  		$ git branch
+  	3.# git checkout master  切回到master分支，此时查看文件内容，会发现内容回退了，因为之前的提交提交到了dev分支上。
+  		$ git checkout master
+  	4.# git merge dev   merge命令将把dev分支的内容合并到当前分支上(在这里是master分支)
+  		$ git merge dev
+  	5.# 合并之后，删除dev分支的命令：
+  		$ git branch -d dev    # 这样就把dev分支删除掉了
+  	
+  # 注注注: 切换分支命令git checkout dev和撤销修改命令git checkout --<file>都用的checkout,所以新版的git推荐使用switch替换掉checkout(替换后创建+切换分支命令的-b需要换成-c，切换分支直接改就好了)
+  # 小结：
+  Git鼓励大量使用分支：
+  查看分支：git branch
+  创建分支：git branch <name>
+  切换分支：git checkout <name>或者git switch <name>
+  创建+切换分支：git checkout -b <name>或者git switch -c <name>
+  合并某分支到当前分支：git merge <name>
+  删除分支：git branch -d <name>
   ```
+  
++ 解决冲突
+
+  ```shell
+  # 冲突产生的原因：
+  	#两个分支在交点之后，均进行了新的独立的提交操作，这样回导致分支合并失败
+          $ git merge dev
+          Auto-merging text.txt
+          CONFLICT (content): Merge conflict in text.txt
+          Automatic merge failed; fix conflicts and then commit the result.
+      # 提示合并发生了冲突。同时冲突信息会被写到冲突文件中(可使用git status查看冲突文件):
+          <<<<<<< HEAD
+          检验冲突  master分支
+          =======
+          检验冲突dev
+          >>>>>>> dev
+  	# 对冲突文件手动进行修改，然后保存提交。再删除dev分支.(因为当前在master分支上，所以手动修改后再提交，master就是正确修改版本，dev的就可以删除了)
+  	
+  	
+  	# 注: 带参数的git log可以查看分支的合并情况
+  	$git log --graph   # 此命令可以看到分支合并图。
+  	$ git log --graph --pretty=oneline --abbrev-commit   # 精简模式
+  	# 其中，--pretty=oneline会把提交记录在一行显示，精简掉每次提交的author和data
+  	# --abbrev-commit则会将版本号精简到前
+  ```
+
++ 分支管理策略
+
+  ```shell
+  # 上边的分支合并默认是使用Fast forward模式，这种模式下，删除分支后，会彻底丢失掉分支信息
+  # 而禁用掉该模式时，系统会在merge合并时生成一个新的commit，然后我们就可以从分支历史上看到分支信息
+  
+  $ git merge --no-ff -m "merge with no-ff" dev
+  # 注意--no-ff参数，表示禁用Fast forward
+  # 然后，因为本次合并要创建一个新的commit，所以加上-m参数，把commit描述写进去。
+  ```
+
+  分支管理
+
+  ```shell
+  # 在团队开发中，应该使用一下几种原则进行分支管理:
+  1.# master分支应该是非常稳定的，也就是仅用来发布新版本，平时不能在上面干活
+  2.# 大家都把东西提交到dev上，每个人都要在自己的分支上干活
+  ```
+
++ bug分支
+
+  ```shell
+  # 在开发中，bug通过来创建临时分支来修复，修复好后合并分支，并把临时分支删除
+  # 应用场景:
+  	# (当前在dev分支)代码有bug，所以没有办法提交(所以就没有办法保存)，如果创建分支用来修改bug就会导致当前未保存内容丢失，此时:
+  	# 使用Git的stash功能，把当前工作现场“储藏”起来，等以后恢复现场后继续工作
+  	$ git stash    # 是的，你没有看错，就两个单词，这么写没错
+  	Saved working directory and index state WIP on dev: f52c633 add merge
+  # 然后，切换到有bug的分支，再在此创建一个用来修复bug的分支，修改好后提交，合并分支到master上，然后把bug分支删除(建议使用--no-ff)
+  # 修改好后，回到dev继续干活，然后把暂存区的内容恢复(这里使用git stash list可以查看暂存区内容):
+  	1.一是用git stash apply恢复，但是恢复后，stash内容并不删除，还需要用git stash drop来删除
+  	2.另一种方式是用git stash pop，恢复的同时把stash内容也删了
+  	
+  	
+  # 上述方法，把master分支的bug修复了，但是当前工作的dev分支依然没有修复，所以我们需要使用再把dev上的文件按照之前修改bug的方式再修复一次。    所以下边是针对这种重复改bug的改进版方案:
+  	# 同样的bug，要在dev上修复，我们只需要把4c805e2 fix bug 101这个提交所做的修改“复制”到dev分支。注意：我们只想复制4c805e2 fix bug 101这个提交所做的修改，并不是把整个master分支merge过来。
+  	# git提供了cherry-pick命令，让我们可以复制一个特定的提交到当前分支(这个命令就相当于在当前分支像复制的特定提交一样修改内容并提交):
+  	$ git branch
+      * dev
+        master
+      $ git cherry-pick 4c805e2
+      [master 1d4b803] fix bug 101
+       1 file changed, 1 insertion(+), 1 deletion(-)
+       # 这样就借助于其他分支的代码提交修改了本分支的代码提交
+       
+   # git stash命令补充:
+   	1.# 首先，我们修改文件内容，不管是否git add,之后我们git stash。此时，工作区的文件会回退到本句的'首先'那里去。然后，我们把暂存区的内容取出来，文件内容会变成修改之后但git add之前的，不管你之前是否进行了git add操作。
+   	2.# 注意，当我们修改文件，stash后。再修改文件，然后commit。如果此时执行git stash pop命令将会产生冲突(跟两个分支分别提交然后合并时的冲突是一样的，即冲突文件中出现两个修改的内容):
+   		<<<<<<< Updated upstream
+          git stash命令练习2
+          =======
+          git stash命令练习
+          >>>>>>> Stashed changes
+          # 所以，我觉着stash其实就是系统新建的分支？只不过不能像平常分支的操作一样，只能查看list啥的。
+        # 我们修改文件提交后，stash list中依然存有stash的信息(这个也有需要注意的点，即我们使用git stash pop命令取的stash中的内容,这个指令如果成功删除stash信息，如果未成功，则不会删除)，我们继续返回stash中的内容，然后发现又其冲突了，看来stash中的东西并不会被修改
+        	<<<<<<< Updated upstream
+          git stash命令练习2
+  
+          =======
+          git stash命令练习
+          >>>>>>> Stashed changes
+  ```
+
++ feature分支
+
+  ```shell
+  # 在实际开发中，每添加一个新功能，最好新建一个feature分支，在上面开发，完成后，合并，最后，删除该feature分支。
+  
+  # 额，另外，如果该功能未开发完，项目经理让舍弃掉这个项目。为了保密，以及整个项目代码无杂乱代码，需要把feature分支删除，但是:
+  $ git branch -d feature-vulcan
+  error: The branch 'feature-vulcan' is not fully merged.
+  If you are sure you want to delete it, run 'git branch -D feature-vulcan'.
+  # 因为该新项目有内容，且并未与其他分支合并，所以git会提示以上信息
+  # 强行删除分支命令:
+  $ git branch -D feature-vulcan
+  Deleted branch feature-vulcan (was 287773e).
+  
+  # 完成，今天可以不用加班了
+  ```
+
++ 多人协作：
+
+  ```shell
+  # 当从远程仓库克隆时，实际上Git自动把本地的master分支和远程的master分支对应起来了，并且，远程仓库的默认名称是origin。
+  # 要查看远程库的信息，用git remote:
+      $git remote
+      origin
+  # 用git remote -v显示更详细的信息：
+      $ git remote -v
+      origin  git@github.com:maxwellcatoo/study_text.git (fetch)
+      origin  git@github.com:maxwellcatoo/study_text.git (push)
+  
+  ```
+
+  推送分支：
+
+  ```shell
+  $ git push origin master  # 推送master分支
+  $ git push origin dev  # 推送dev分支
+  # 实际开发中，根据项目要求选择推送需要推送的分支，并不是所有的都需要推送
+  master分支是主分支，因此要时刻与远程同步；
+  dev分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步；
+  bug分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug；
+  feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
+  ```
+
+  抓取分支：
+
+  ```
+  
+  ```
+
+  
 
 
 
