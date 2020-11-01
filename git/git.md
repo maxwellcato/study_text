@@ -308,11 +308,381 @@
 
   抓取分支：
 
+  ```shell
+  # 情景:在另一台电脑或同一台电脑另一个目录下克隆项目(当然，这个是需要把电脑上的ssh-key配置到远程的GitHub上的):
+      $ git clone git@github.com:michaelliao/learngit.git
+    Cloning into 'learngit'...
+      remote: Counting objects: 40, done.
+      remote: Compressing objects: 100% (21/21), done.
+      remote: Total 40 (delta 14), reused 40 (delta 14), pack-reused 0
+      Receiving objects: 100% (40/40), done.
+      Resolving deltas: 100% (14/14), done.
+  # 克隆后，默认情况下，只能看到master分支
+  	$ git branch
+      * master
+  # 当我们开发时，要在dev分支上开发，就必须创建远程origin的dev分支到本地，所以用这个命令创建本地dev分支:
+  	$ git checkout -b dev origin/dev
+  # 之后，就可以在dev分支进行开发，并时不时的把dev分支push到远程:
+      $ git add env.txt
+  
+      $ git commit -m "add env"
+      [dev 7a5e5dd] add env
+       1 file changed, 1 insertion(+)
+       create mode 100644 env.txt
+  
+      $ git push origin dev
+      Counting objects: 3, done.
+      Delta compression using up to 4 threads.
+      Compressing objects: 100% (2/2), done.
+      Writing objects: 100% (3/3), 308 bytes | 308.00 KiB/s, done.
+      Total 3 (delta 0), reused 0 (delta 0)
+      To github.com:michaelliao/learngit.git
+         f52c633..7a5e5dd  dev -> dev
+  # 注意，问题来了，当多人协作时，其中一个人推送了他的dev分支到远程，而另一个人也碰巧对前边那个人提交的文件做了修改，那么推送将会发生错误:
+      $ cat env.txt
+      env
+  
+      $ git add env.txt
+  
+      $ git commit -m "add new env"
+      [dev 7bd91f1] add new env
+       1 file changed, 1 insertion(+)
+       create mode 100644 env.txt
+  
+      $ git push origin dev
+      To github.com:michaelliao/learngit.git
+       ! [rejected]        dev -> dev (non-fast-forward)
+      error: failed to push some refs to 'git@github.com:michaelliao/learngit.git'
+      hint: Updates were rejected because the tip of your current branch is behind
+      hint: its remote counterpart. Integrate the remote changes (e.g.
+      hint: 'git pull ...') before pushing again.
+      hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+  # 解决办法(就按照上边的提示信息走):
+  # 先用git pull把最新的提交从origin/dev抓下来，然后在本地合并，解决冲突，在推送
+  	#先git pull时会提示错误:
+          $ git pull
+          There is no tracking information for the current branch.
+          Please specify which branch you want to merge with.
+          See git-pull(1) for details.
+  
+              git pull <remote> <branch>
+  
+          If you wish to set tracking information for this branch you can do so with:
+  
+              git branch --set-upstream-to=origin/<branch> dev
+      # 原因是没有指定本地dev分支与远程origin/dev分支的链接
+      # 所以要先设置dev和origin/dev的链接:
+           $ git branch --set-upstream-to=origin/dev dev
+           Branch 'dev' set up to track remote branch 'dev' from 'origin'.
+      # 然后再pull:
+          $ git pull
+          Auto-merging env.txt
+          CONFLICT (add/add): Merge conflict in env.txt
+          Automatic merge failed; fix conflicts and then commit the result.
+      # git pull成功，但是合并会有冲突，所以手动解决冲突后，再提交:
+          $ git commit -m "fix env conflict"
+          [dev 57c53ab] fix env conflict
+  
+          $ git push origin dev
+          Counting objects: 6, done.
+          Delta compression using up to 4 threads.
+          Compressing objects: 100% (4/4), done.
+          Writing objects: 100% (6/6), 621 bytes | 621.00 KiB/s, done.
+          Total 6 (delta 0), reused 0 (delta 0)
+          To github.com:michaelliao/learngit.git
+             7a5e5dd..57c53ab  dev -> dev
+  	# 这样就完成了提交
   ```
   
+  一般在多人协作中提交代码时需要做工作：
+  
+  ```shell
+  # 多人协作的工作模式通常是这样:
+  
+      # 首先，可以试图用git push origin <branch-name>推送自己的修改；
+      # 如果推送失败，则因为远程分支比你的本地更新，需要先用git pull试图合并；
+      # 如果合并有冲突，则解决冲突，并在本地提交；
+      # 没有冲突或者解决掉冲突后，再用git push origin <branch-name>推送就能成功！
+      # 如果git pull提示no tracking information，则说明本地分支和远程分支的链接关系没有创建，用命令git branch --set-upstream-to <branch-name> origin/<branch-name>。
+  ```
+  
++ Rebase
+
+  ```shell
+  # 多人协作时，提交容易出现冲突，解决冲突后，我们git log查看分支线时，会很乱，有多乱呢，请看:
+      $ git log --graph --pretty=oneline --abbrev-commit
+      * d1be385 (HEAD -> master, origin/master) init hello
+      *   e5e69f1 Merge branch 'dev'
+      |\  
+      | *   57c53ab (origin/dev, dev) fix env conflict
+      | |\  
+      | | * 7a5e5dd add env
+      | * | 7bd91f1 add new env
+      | |/  
+      * |   12a631b merged bug fix 101
+      |\ \  
+      | * | 4c805e2 fix bug 101
+      |/ /  
+      * |   e1e9c68 merge with no-ff
+      |\ \  
+      | |/  
+      | * f52c633 add merge
+      |/  
+      *   cf810e4 conflict fixed
+  # 把分叉的提交变成直线的方法:
+  # 使用git rebase命令
+      $ git rebase
+      First, rewinding head to replay your work on top of it...
+      Applying: add comment
+      Using index info to reconstruct a base tree...
+      M	hello.py
+      Falling back to patching base and 3-way merge...
+      Auto-merging hello.py
+      Applying: add author
+      Using index info to reconstruct a base tree...
+      M	hello.py
+      Falling back to patching base and 3-way merge...
+      Auto-merging hello.py
+     
+  # 然后，分支线就变成一条直线了，再提交到远程后，远程的东西也会变成一条直线(所以，修改这东西要慎重)
+  ```
+
+#### 标签管理
+
++ 什么是标签：
+
+  ```shell
+  # tag就是一个让人容易记住的有意义的名字，它跟某个commit绑在一起。
+  
+  # 发布一个版本时，我们通常先在版本库中打一个标签（tag），这样，就唯一确定了打标签时刻的版本。将来无论什么时候，取某个标签的版本，就是把那个打标签的时刻的历史版本取出来。所以，标签也是版本库的一个快照。
+  
+  #Git的标签虽然是版本库的快照，但其实它就是指向某个commit的指针（跟分支很像对不对？但是分支可以移动，标签不能移动），所以，创建和删除标签都是瞬间完成的。
+  ```
+
++ 创建标签：
+
+  ```shell
+  # 首先，切换到需要打标签的分支上
+  # 使用命令:
+    $ git tag 'NAME'     # 注意：该指令默认给最新提交的commit打标签   
+      # 即可打一个新标签
+  # 然后，可以使用命令:
+  	$git tag 	# 查看所有标签
+  	v1.0
+  # 如果要给之前的提交打标签，则需要添加参数:
+  	$ git tag v0.9 f52c633    
+  	# f52c633为需要打标签的commit的id
+  # 标签不按时间排序，而是按字母排序，所以，标签名一定要足够的有辨识度。要查看某一个标签的具体信息，使用指令:
+  	$ git show v1.0
+  # 另外，还可以创建带有说明的标签，用-a指定标签名，-m指定说明文字(说明文字同样会在git show指令后显现):
+  	$ git tag -a v0.1 -m "version 0.1 released" 1094adb
+  	
+  	$ git show v0.1
+      tag v0.1
+      Tagger: Michael Liao <askxuefeng@gmail.com>
+      Date:   Fri May 18 22:48:43 2018 +0800
+  
+      version 0.1 released
+  
+      commit 1094adb7b9b3807259d8cb349e7df1d4d6477073 (tag: v0.1)
+      Author: Michael Liao <askxuefeng@gmail.com>
+      Date:   Fri May 18 21:06:15 2018 +0800
+  
+          append GPL
+  
+      diff --git a/readme.txt b/readme.txt
+      ...
+  ```
+  
++ 操作标签
+
+  ```shell
+  # 当标签打错时,可以使用-d删除标签:
+  	$git tag -d v1.0
+  # 创建的标签只存储在本地，使用git push默认指令不会把标签推送到远程
+  # 把标签推送到远程的命令:
+      $ git push origin v1.0
+      Total 0 (delta 0), reused 0 (delta 0)
+      To github.com:michaelliao/learngit.git
+       * [new tag]         v1.0 -> v1.0
+  # 以及把所有本地未推送到远程标签推送到远程的命令:	
+      $ git push origin --tags
+      Total 0 (delta 0), reused 0 (delta 0)
+      To github.com:michaelliao/learngit.git
+       * [new tag]         v0.9 -> v0.9
+  # 标签推送到远程后，删除标签的命令:
+  	1.# 先删除本地的
+          $ git tag -d v0.9
+          Deleted tag 'v0.9' (was f52c633)
+      2.# 删除远程
+      	$ git push origin :refs/tags/v0.9
+          To github.com:michaelliao/learngit.git
+           - [deleted]         v0.9
+  ```
+
+#### 使用GitHub参与开源项目
+
++ 参与开源项目
+
+  ```shell
+  1.# 打开要参与的开源项目的GitHub页，点击右上角的'Fork'，这样就在自己的账号下克隆了该仓库，然后从自己的账号下clone:
+  	$ git clone git@github.com:michaelliao/bootstrap.git
+  	# 如果不'Fork'，直接clone，是无法提交的。Fork后也要从自己的仓库下进行clone才能提交
+  ```
+
+#### 使用Gitee
+
++ 登录Gitee主页，创建Gitee仓库
+
+  ```shell
+  # 全中文页面，自己看着搞就行了，跟GitHub主页很像，地址:
+  	https://gitee.com/
+  ```
+
++ 本地项目与Gitee远程库连接
+
+  ```shell
+  $ git remote add origin git@gitee.com:liaoxuefeng/learngit.git   # 跟连接GitHub项目操作一样
+  
+  # 这已经连接好了，就可以git push 、git pull了
+  
+  # 但，如果本地项目已经与GitHub项目连接，使用上述连接Gitee会报错，需要先取消掉本地与GitHub远程仓库的连接
+  	$ git remote -v  # 可以先使用此命令查看远程库信息
+      origin	git@github.com:michaelliao/learngit.git (fetch)
+      origin	git@github.com:michaelliao/learngit.git (push)
+      
+      $ git remote rm origin  # 先去除与远程库的连接
+      
+      $ git remote add origin git@gitee.com:liaoxuefeng/learngit.git  # 再连接Gitee的远程库
+  ```
+
++ 既连接GitHub库，又连接Gitee库
+
+  ```shell
+  # 先解除掉与Github的连接
+  	$ git remote rm origin
+  # 然后，关联Github远程库(注意，不在使用GitHub远程库默认名(要用也可以，不过两者要有区分))
+  	$ git remote add github git@github.com:michaelliao/learngit.git
+  # 然后，再关联Gitee远程库
+  	$ git remote add gitee git@gitee.com:liaoxuefeng/learngit.git
+  # 此时，使用git remote -v查看远程库命令:
+  	git remote -v
+      gitee	git@gitee.com:liaoxuefeng/learngit.git (fetch)
+      gitee	git@gitee.com:liaoxuefeng/learngit.git (push)
+      github	git@github.com:michaelliao/learngit.git (fetch)
+      github	git@github.com:michaelliao/learngit.git (push)
+  # 而此时，我们推送本地仓库到远程时，则需要加上远程仓库的名字，不可省略
+  	$ git push github master
+  	$ git push gitee master
+  ```
+
+#### 一些自定义配置
+
++ 忽略特殊文件
+
+  ```shell
+  # 在工作区目录下，创建一个.gitignore文件，然后把要忽略的文件名填进去，那么我们git add和git status查看的时候就会忽略掉这些文件了
+  # 举例:
+  
+      # Windows:
+      Thumbs.db
+      ehthumbs.db
+      Desktop.ini
+  
+      # Python:
+      *.py[cod]
+      *.so
+      *.egg
+      *.egg-info
+      dist
+      build
+  
+      # My configurations:
+      db.ini
+      deploy_key_rsa
+  # .gitignore文件中，多使用正则表达式匹配一些文件，有时候可能会忽略掉我们想要提交的文件,解决办法:
+  	1.# 使用强制命令
+  		$ git add -f App.class   # 加个-f
+  	2.# 在配置文件中添加信息
+  		!.gitignore
+  		!App.class
+  		# 这样，被.*和*.class隐藏的.gitignore和App.class文件就可以提交了
+  	3.# 可能是配置文件写错的？使用命令检查:
+  		$ git check-ignore -v App.class
+  		.gitignore:3:*.class	App.class
+  		# Git会告诉我们，.gitignore的第3行规则忽略了该文件
+  		# 如果确实写错了，那就修改，如果没写错，那就用第二种或第一种
+  ```
+
++ 配置别名(git用的不是很熟练的话不建议用)
+
+  ```shell
+  # 令git st 表示git status
+  $ git config --global alias.st status
+  
+  # 现在玩的还不熟，不建议用，等到要用的时候，参看网页链接:https://www.liaoxuefeng.com/wiki/896043488029600/898732837407424
+  ```
+
+#### 搭建Git服务器
+
++ 自己搭建Git服务器
+
+  ```shell
+  # 搭建Git服务器需要准备一台运行Linux的机器，强烈推荐用Ubuntu或Debian，这样，通过几条简单的apt命令就可以完成安装
+  # 前提: 要有一个sudo权限的用户账号
+  # 步骤:
+  	1.# 安装git:
+  		$ sudo apt-get install git
+  	2.# 创建一个git用户，用来运行git服务:
+  		$ sudo adduser git
+  	3.# 创建证书登录:
+  		# 收集所有需要登录的用户的公钥，就是他们自己的id_rsa.pub文件，把所有公钥导入到/home/git/.ssh/authorized_keys文件里，一行一个。
+  	4.# 初始化Git仓库:
+  		# 先选定一个目录作为Git仓库，假定是/srv/sample.git，在/srv目录下输入命令:
+  			$ sudo git init --bare sample.git
+  			# 此时，git就已经创建了一个裸仓库，裸仓库没有工作区，因为服务器上的git主要是为了共享，不是让使用者直接在工作区修改的
+  		# 然后，把owner改为git:
+  			$ sudo chown -R git:git sample.git
+  	5.# 禁止shell登录:
+  		# 出于安全考虑，第二步创建的git用户不允许登录shell，因此通过编辑/etc/passwd文件来完成:
+  			# 将文件中的:
+  				git:x:1001:1001:,,,:/home/git:/bin/bash
+  			# 改为:
+  				git:x:1001:1001:,,,:/home/git:/usr/bin/git-shell
+  		# 这样，git用户可以正常通过ssh使用git，但无法登录shell，因为我们为git用户指定的git-shell每次一登录就自动退出。
+  	6.# 克隆远程仓库
+  		# 此时，就已经可以使用git clone命令克隆部署在服务器上的远程仓库的内容了:
+              $ git clone git@server:/srv/sample.git
+               Cloning into 'sample'...
+               warning: You appear to have cloned an empty repository.
+  ```
+
++ 管理公匙
+  ```shell
+  # 小团队的话，把公匙收集起来放到服务器中的/home/git/.ssh/authorized_keys文件中，如果人很多，比如几百人，那就需要用Gitosis来管理公匙，这里不详细记录(因为别人也没说...)
+  ```
+  
++ 管理权限
+  ```shell
+  # 仓库可以通过Gitolite工具达到控制每个人对每个分支甚至每个目录是否有读写权限，这里不详细介绍(因为别人也没说...)
+  ```
+
+#### git的图像管理工具
+
++ #### SourceTree
+
+  ```shell
+  # 附上链接:https://www.liaoxuefeng.com/wiki/896043488029600/1317161920364578
+  # 我一般直接用安装git时附带的那个Gui工具
   ```
 
   
+
+
+
+
+
+
 
 
 
