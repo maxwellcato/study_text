@@ -135,7 +135,6 @@
       remote: Counting objects: 3, done.
       remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 3
       Receiving objects: 100% (3/3), done
-  
   ```
 
 #### 分支管理(高级用法，很重要)
@@ -718,7 +717,28 @@
 
 #### 解决git status、git add .等显示文件名乱码的问题
 
+```shell
+# 在bash命令行，单击右键，选择options,然后选择左边的Text,再点击character-set，在下拉框中选择utf-8即可
 ```
 
+#### 比较本地仓库和远程仓库的区别并合并
+
+```shell
+# 准备工作(查看远程仓库分支)
+	$ git remote -v 
+	origin  git@github.com:maxwellcatoo/study_text.git (fetch)
+	origin  git@github.com:maxwellcatoo/study_text.git (push)
+	
+	# 其中
+	fetch：代表用于拉取的远程仓库地址
+	push：代表用于提交的远程仓库地址
+# 1. 在本地新建一个临时分支temp
+	$git branch temp
+# 2. 然后，将远程仓库的master分支下载到本地的temp分支上
+	$git fetch origin master:temp
+	# 关于git fetch命令的一些补充:
+		git pull是git fetch和git merge命令的一个组合,git fetch是把远程仓库的内容拉下来
+# 3. 然后，比较temp分支和master分支的区别，推荐使用图像化工具进行对比
+# 4. 之后，选择合并，如果合并有冲突，手动处理一下冲突文件，然后再git commit再git push就算合并完成了
 ```
 
