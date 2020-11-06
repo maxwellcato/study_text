@@ -130,3 +130,12 @@ routers:[
 # 解决办法是不使用name的那种连接方式，而是使用直接写路径的那种跳转方式不会发生以上的问题。
 ```
 
+##### 关于在vue中使用定时器
+
+```
+如果在vue中使用定时器的话，记得要在组件beforeDestroy生命周期内把定时器清除掉
+
+clearTimemout(timer)  清除setTimeout
+clearInterval  清除setInterval
+```
+
