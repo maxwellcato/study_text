@@ -27,7 +27,7 @@
 
 + 事件处理on()绑定事件
 
-  ```
+  ```js
   on() 方法在匹配元素上绑定一个或多个事件的事件处理函数:
   
   element.on(events,[selector],fn)
@@ -151,7 +151,7 @@
 
 + 层级选择器
 
-  ```
+  ```js
   子代选择器  $('ul>li')
   后代选择器  $('ul li')
   ```
@@ -167,7 +167,7 @@
 
 + jquery筛选选择器
 
-  ```
+  ```js
   :first   获取第一个元素
   :last  获取最后一个元素
   :eq(index)  获取第index+1个元素，index从0开始的
@@ -203,7 +203,7 @@
 + 链式编程
 
   ```js
-  $(this).css('color', 'red').siblings().css('color', '');     
+  $(this).css('color', 'red').siblings().css('color', ''); 
   
   //这就是链式编程
   ```
@@ -575,40 +575,59 @@
 
 + ### 语法 1
 
-  ```
+  ```js
   $(document).ready(function)
   ```
 
   ### 语法 2
 
-  ```
+  ```js
   $().ready(function)
   ```
 
   ### 语法 3
 
-  ```
+  ```js
   $(function)
   ```
 
 ##### 属性选择器
 
 + 选取所有带有href属性的元素
+
+  ```js
+  $("[href]")
+  ```
+
 + 选取所有带有href属性且等于"#"的元素
-+ 选取所有带有href且值不等于"#"的元素
+
+  ```js
+  $("[href='#']")
+  ```
+
++ 选取所有带有href且值不等于"#"的元素   (这个好像是找到所有非href值等于#的元素，没有href属性的也会被勾选上，所以用的时候，要在前面加上要加上有href值的选择)
+
+  ```js
+  $('[href][href!="#"]')   //这样就能选择有href但是href不等于"#"的元素了
+  ```
+
 + 选取所有href值以'.jpg'结尾的元素
+
+  ```js
+  $('[href$='.jpg']')
+  ```
 
 ##### 层级选择器补充
 
 + prev + next 匹配所有紧接在prev元素后的next元素
 
-  ```
-  $('label+input')  匹配所有跟在lable后边的input元素
+  ```js
+  $('label+input')  匹配所有跟在lable后边的input元素(注意，就后面那一个元素)
   ```
 
 + prev ~ siblings 匹配所有紧接在prev元素后的所有siblings元素
 
-  ```
+  ```js
   $('form~input')  找到所有form表单同辈的input元素
   ```
 
@@ -616,13 +635,13 @@
 
 + :not(selector)  去除所有不跟给定选择器匹配的元素
 
-  ```
+  ```js
   $('input:not(:checked)')    查找所有未选中的input元素
   ```
 
 + :gt(index)  匹配所有大于给定索引值的元素
 
-  ```
+  ```js
   $('tr:gt(0)')   查找所有索引大于0的行
   ```
 
@@ -630,35 +649,117 @@
 
 + :header    匹配所有标题元素
 
+  ```js
+  $(':header').css({"color","red"})  //把所有标题字体颜色设置为红色
+  ```
+
 + :animated  匹配所有正在执行动画效果的元素
 
 ##### 内容选择器补充
 
 + :contains(text)    匹配包含给定文本的元素
 
-  ```
+  ```js
   $("div:contains('John')")    查找所有包含"John"的div元素
+  $(':contains("点")').css('color','red')  查找所有包含"点"的元素将其字体颜色设置为红色#错误，如果不限制是什么元素的话，通过文本选择元素会很混乱
   ```
 
 + :empty  匹配不包含子元素或者文本的空元素
 
-  ```
+  ```js
   $("td:empty")  匹配没有子元素或空文本的td元素
   ```
 
 + :has(selector)  匹配含有选择器所匹配的元素的元素
 
-  ```
+  ```js
   $("div:has(p)").addClass('test')    给所有包含p元素的div元素添加一个样式
   ```
 
 + :parent  选取所有带有子元素或包含文本的<td>元素：
 
-  ```
+  ```js
   $("td:parent")    查找所有含有子元素	或者文本的td元素
   ```
 
 ##### 可见性选择器
 
-+ :hidden   匹配所有的不可见元素(包含display=none和input=hidden的)
++ :hidden   匹配所有的不可见元素(包含display=none和input=hidden的)   
+
+  ```js
+  # 有点不对劲啊，不知道为什么:hidden不加前缀直接写$(':hidden').css('display','block')时，会把style里边的样式都以文本的方式显示在桌面上，script中的所有内容也以文本的形式出现在了页面上。  //原因分析:因为html文件中style和script等元素不被解析到页面上的原因是其display属性是none的原因，而使用$(':hidden')的话会获取到所有的display为none的元素，所以会出现上面的那种现象。
+  //但是，假如我们只是向上边那样全选隐藏的元素，但是不更改他们的display属性的，style和script中文本不会出来
+  // 而使用下边的$(':visible')选择所有元素是没有这些问题的，即便是选择所有可见元素然后给设置隐藏也没问题
+  
+  //加时间延迟，以及style样式设置为可见，先用jquery设置不可见，再延迟几秒设置为可见，依然会出现这个问题
+  ```
+
+  
+
 + :visible  匹配所有的可见元素
+
+
+
+##### 属性选择器补充
+
++ [attribute]    匹配包含给定属性的元素
+
+  ```js
+  $(['div[id]'])   查找所有含有id属性的div元素
+  ```
+
++ [attribute=value]    匹配包含给定属性是某个特定值的元素
+
+  ```
+  $("input[name='newsletter']").attr("checked",true)    //查找input标签name='newseletter'并设置为选中(type等属性也是可以的)
+  ```
+
++ [attribute!=value]     匹配不包含给定属性是某个特定值的元素
+
+  ```js
+  //不在前边加限制也会导致没有type属性的元素被选中
+  ```
+
++ 其他
+
+  ```
+  [attribute^=value]    以某些内容开头的
+  [attribute$=value] 	  以某些内容结尾的
+  [attribute*=value]    属性值中包含这个内容的
+  [attribute^=value][attribute$=value][attribute*=value]    复合，需要同时满足这些条件的
+  ```
+
+##### 子元素选择器补充
+
++ :nth-child(index/even/odd/equation)   匹配其父元素下的第N个子或奇偶元素   (这个equation不知道是啥，写了也会报错其他都没啥问题)
++ :first-child
++ :last-child
++ only-child  如果某个元素是父元素中国唯一的子元素，就匹配，否则，不匹配
+
+###### 表单选择器补充
+
++ ```
+  :input
+  :text
+  :password
+  :redio
+  :checkbox
+  :submit
+  :image
+  :reset
+  :button
+  :file
+  :hidden
+  ```
+
++ 表单对象属性选择器
+
+  ```
+  :enabled
+  :disabled
+  :checked
+  :selected
+  ```
+
+  
+
