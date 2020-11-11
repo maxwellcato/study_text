@@ -10,7 +10,9 @@
   $(“div”).click(function(){  事件处理程序 })
   
   其他事件和原生基本一致。
-  比如mouseover、mouseout、blur、focus、change、keydown、keyup、resize(这个好像只能用window来触发，绑定到其他元素上，即使尺寸变了也不会触发)、scroll(该元素只要有滚动条，就可以绑定该事件并触发) 等
+  # 比如mouseover、mouseout、blur、focus、change、keydown、keyup、resize(这个好像只能用window来触发，绑定到其他元素上，即使尺寸变了也不会触发)、scroll(该元素只要有滚动条，就可以绑定该事件并触发)、dblclick、error(触发、或将函数绑定到指定元素的error事件
+  ) 等
+  
   1.# 补充: 前台，绑定事件的是A，A里面还有子元素B，那么:
   	# A元素绑定mouseover和mouseout事件时，鼠标由A元素移动到B元素上，这两个事件也会被触发
   	# A元素绑定mouseenter和mouseleave事件时,鼠标从A移动到B上，不会被触发
@@ -34,7 +36,7 @@
   
   1. events:一个或多个用空格分隔的事件类型，如"click"或"keydown" 。
   2. selector: 元素的子元素选择器 。
-  3. fn:回调函数 即绑定在元素身上的侦听函数
+  3. fn:回调函数 即绑定在元素身上的侦听函数。
   ```
 
   + **2.1** **事件处理** **on()** **绑定事件**
@@ -45,7 +47,7 @@
              $(“div”).on({
                  mouseover: function(){}, 
                  mouseout: function(){},
-                 click: function(){}	
+                 click: function(){}
              });
     	# 如果事件处理程序相同 :
             $(“div”).on(“mouseover mouseout”, function() {
@@ -56,13 +58,13 @@
     	#可以事件委派操作 。事件委派的定义就是，把原来加给子元素身上的事件绑定在父元素身上，就是把事件委派给父元素:
             $('ul').on('click', 'li', function() {
                 alert('hello world!');
-            });       
+            });
         注: 在此之前有bind(), live() delegate()等方法来处理事件绑定或者事件委派，最新版本的请用on替代他们。
     3.# on() 方法优势3:
     	# 动态创建的元素，click() 没有办法绑定事件， on() 可以给动态生成的元素绑定事件 
             $(“div").on("click",”p”, function(){
                  alert("俺可以给动态生成的元素绑定事件")
-             });       
+             });
     		
     		$("div").append($("<p>我是动态创建的p</p>"));
     		# 注意: 
@@ -73,11 +75,11 @@
   
   + off() 方法可以移除通过 on() 方法添加的事件处理程序
   
-      ```shell
+      ```js
           $("p").off() // 解绑p元素所有事件处理程序
       
           $("p").off( "click")  // 解绑p元素上面的点击事件 后面的 foo 是侦听函数名(课件上没写foo，自己写了一下，完全不知道咋实现了...)
-          # 后面如果跟上函数名的话(绑定时候给函数定义的名字)，会比不加多触发一次函数(忘了当时是咋绑定的，一写绑定时定义的函数名，就报错啊)
+          // 后面如果跟上函数名的话(绑定时候给函数定义的名字)，会比不加多触发一次函数(忘了当时是咋绑定的，一写绑定时定义的函数名，就报错啊)
       
         $("ul").off("click", "li");   // 解绑事件委托(有点怀疑这个‘li’有没有必要加上去，直接把click从ul上解绑掉就达到解除的效果了...,难道加上有性能优化的好处？)
     ```
@@ -271,6 +273,9 @@
   	fadeTo()
   # 自定义动画
   	animate()
+  	# 代码：
+  	$('li').animate({'width':'500px'},5000).animate({left:-1000},{queue:false,duration:5000})
+  		# 在上面的函数中，将queue属性设置成了false，该属性默认情况下为true，为true时，li元素将在5秒钟内宽度变成5000，然后再花5000毫秒的时间向左移动。不过如果把queue设置为false的话，宽度变为5000的和left变为-1000的动画将同时进行。
   ```
 
 + 显示隐藏效果
@@ -738,18 +743,18 @@
 
 ###### 表单选择器补充
 
-+ ```
++ ```js
   :input
   :text
   :password
-  :redio
+  :radio
   :checkbox
   :submit
   :image
   :reset
   :button
   :file
-  :hidden
+  :hidden   //匹配type为hidden的表单
   ```
 
 + 表单对象属性选择器
@@ -761,5 +766,10 @@
   :selected
   ```
 
-  
+
+
+
+##### shiyan 
+
+
 
