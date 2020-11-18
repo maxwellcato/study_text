@@ -1,4 +1,4 @@
-## 采用五级标题和四级标题交叉的方法来方便识别目录内容，没有包含的意思
+## 采用五级标题和三级标题交叉的方法来方便识别目录内容，没有包含的意思
 
 
 
@@ -85,7 +85,89 @@
   如果 v-model 表达式的初始值未能匹配任何选项，<select> 元素将被渲染为“未选中”状态。在 iOS 中，这会使用户无法选择第一个选项。因为这样的情况下，iOS 不会触发 change 事件。因此，更推荐像上面这样提供一个值为空的禁用选项。
   ```
 
-+ 
+
+
+
+### Vue的事件系统分离自浏览器的EventTarget API，尽管它们运行类似，但是$emit和$on不是addEventListener和dispatchEvent的别名
+
+
+
+##### 表单输入的修饰符（加在v-model后）
+
++ .lazy
++ .number
++ .trim
+
+
+
+### 使用prop进行传值，在传值的属性没有值的情况下，传的值也是true
+
++ ```html
+  <!-- 包含该 prop 没有值的情况在内，都意味着 `true`。-->
+  <blog-post is-published></blog-post>        <!-- is-published为要传的值 -->
+  ```
+
+
+
+##### 子组件中最后不要对父组件通过prop传过来的值进行直接修改(之前我连直接修改都不会，后来通过watch监听学会了)，建议:
+
++ 在data中创建一个属性存prop的值
++ 如果要对prop的格式进行一下修改，建议使用computed方法来进行修改
+
+
+
+### vue的异步组件实现方法
+
+
+
+##### 在每个 `new Vue` 实例的子组件中，其根实例可以通过 `$root` property 进行访问，以及该方法的适用项目
+
+
+
+### 和 `$root` 类似，`$parent` property 可以用来从一个子组件访问父组件的实例
+
+
+
+##### $refs` 只会在组件渲染完成之后生效，并且它们不是响应式的。这仅作为一个用于直接操作子组件的“逃生舱”——你应该避免在模板或计算属性中访问 `$refs
+
+
+
+### 依赖注入中的`provide` 和 `inject`作用和使用方法
+
+
+
+##### 使用$options注册子组件的方法
+
++ ```js
+  beforeCreate: function () {
+    this.$options.components.TreeFolderContents = require('./tree-folder-contents.vue').default
+  }
+  ```
+
+
+
+### vue中进行手动强制更新的方法
+
+
+
+##### mapGetters的用法（两种）及注意事项
+
+
+
+### 使用Mutation更改对象的属性时，不要直接更改，推荐使用的两种方法的具体用法：
+
++ 使用Vue.set()方法
++ 使用解构赋值的方法state.obj = {...state.obj,'key':'value'}
+
+
+
+##### 当有**相同标签名**的元素切换时，需要通过 `key` attribute 设置唯一的值来标记以让 Vue 区分它们
+
+
+
+### 
+
+
 
 
 
