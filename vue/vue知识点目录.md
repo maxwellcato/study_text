@@ -165,17 +165,27 @@
 
 
 
-### 
+### 半问题半记忆吧，store里module中的getters可以接受四个参数，state、getters、rootState、rootGetters，奇怪的点是getters和rootGetters完全一样，使用了console.log(getters === rootGetters)输出，结果为true；rootState中包含有state
 
 
 
+##### 命名空间的使用方法和作用
 
 
 
+### 在带命名空间的模块注册全局 action的方法
 
 
 
+##### 严格模式下Vuex数据绑定v-model的两种实现方法
+
++ 一种是使用:value和@input结合实现的，这种在标签上用不到v-model
++ 另一种是computed的get方法和set方法来实现,这种在标签上可以用到v-model
 
 
 
+### 如果你在 `store.js` 文件中定义了 mutation，并且使用 ES2015 模块功能默认输出了 Vuex.Store 的实例，那么你仍然可以给 mutation 取个变量名然后把它输出去：
 
+
+
+##### 
