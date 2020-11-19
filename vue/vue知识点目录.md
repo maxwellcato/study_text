@@ -165,7 +165,7 @@
 
 
 
-### 半问题半记忆吧，store里module中的getters可以接受四个参数，state、getters、rootState、rootGetters，奇怪的点是getters和rootGetters完全一样，使用了console.log(getters === rootGetters)输出，结果为true；rootState中包含有state
+### 半问题半记忆吧，store里module中的getters可以接受四个参数，state、getters、rootState、rootGetters，奇怪的点是getters和rootGetters完全一样，使用了console.log(getters === rootGetters)输出，结果为true（原因是模块的getters中只有那一个我们在其中用getters和rootGetters参数的函数，且未定义命名空间的情况下，getters和rootGetters值是相等的）；rootState中包含有state
 
 
 
@@ -185,6 +185,14 @@
 
 
 ### 如果你在 `store.js` 文件中定义了 mutation，并且使用 ES2015 模块功能默认输出了 Vuex.Store 的实例，那么你仍然可以给 mutation 取个变量名然后把它输出去：
+
+
+
+##### 同名钩子函数将合并为一个数组，因此都将被调用。另外，混入对象的钩子将在组件自身钩子**之前**调用。
+
+
+
+### 值为对象的选项，例如 `methods`、`components` 和 `directives`，将被合并为同一个对象。两个对象键名冲突时，取组件对象的键值对。`Vue.extend()` 也使用同样的策略进行合并。
 
 
 
