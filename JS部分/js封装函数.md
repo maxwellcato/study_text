@@ -10,3 +10,30 @@ function codePointLength(text){
 let str = '𠮷𠮷𠮷𠮷'
 ```
 
+#### 深克隆函数
+
+```javascript
+// function deepClone(obj) {
+//     if(obj === null) return obj
+//     if(typeof obj !== 'object') return obj
+//     const cloneObj = new obj.constructor()
+//     for(let i in obj) {
+//         if(obj.hasOwnProperty(i)) {
+//             cloneObj[i] = deepClone(obj[i])
+//         }
+//     }
+//     return cloneObj
+// }
+function deepClone(obj) {
+    if (obj === null) return obj
+    const cloneObj = new obj.constructor()
+    if (typeof obj !== 'object') return obj
+    for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            cloneObj[i] = deepClone(obj[i])
+        }
+    }
+    return cloneObj
+}
+```
+
